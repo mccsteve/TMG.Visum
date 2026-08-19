@@ -26,10 +26,24 @@ internal static class COM
         // We collect and wait twice to ensure that cycles don't cause issues
         if (forceGC)
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            ForceGC();
         }
+    }
+
+    internal static void ForceGC()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        Marshal.CleanupUnusedObjectsInCurrentContext();
+        while (Marshal.AreComObjectsAvailableForCleanup())
+        {
+            
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            Marshal.CleanupUnusedObjectsInCurrentContext();
+        }
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
     }
 }
